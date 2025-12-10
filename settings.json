@@ -1,0 +1,64 @@
+{
+  "enabledPlugins": {
+    "frontend-design@claude-code-plugins": true
+  },
+  "alwaysThinkingEnabled": true,
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/tobiasbrummer/.claude/hooks/planning-reminder.sh",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.command' | grep -qE 'git.*(commit|add.*\\.env)' && { echo '🔒 Security: Cannot commit .env or sensitive files' >&2; exit 2; } || exit 0",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path' | while read fp; do case \"$fp\" in *.ts|*.tsx|*.js|*.jsx) npx prettier --write \"$fp\" 2>/dev/null && echo \"✨ Formatted: $fp\";; *.py) black \"$fp\" 2>/dev/null && echo \"✨ Formatted: $fp\";; esac; done; exit 0",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/tobiasbrummer/.claude/hooks/session-start.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/tobiasbrummer/.claude/hooks/precompact-preservation.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
